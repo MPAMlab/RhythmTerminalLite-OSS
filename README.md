@@ -6,7 +6,11 @@ This project provides a specialized firmware for an **ATmega32U4** based PCB int
 
 This repository is based on CrazyRedMachine/PN5180-cardio: https://github.com/CrazyRedMachine/PN5180-cardio
 
-Another similar project: https://github.com/MPAMlab/pico-spice-reader/
+Joystick part is based on https://github.com/nonefffds/joystick-atmega32u4 and https://github.com/MHeironimus/ArduinoJoystickLibrary
+
+PN5180 NFC library for reading ISO14443, ISO15693, felica, is based on https://github.com/ATrappmann/PN5180-Library
+
+Another similar project for integrate a PN5132 with rpi pico: https://github.com/MPAMlab/pico-spice-reader/
 
 Warning: This repository includes AIGC contents.
 
