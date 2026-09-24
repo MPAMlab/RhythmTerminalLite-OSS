@@ -89,6 +89,11 @@ Please notice, you should have a 5v-3.3v level converter on spi bus.
    - Set Board to **Arduino Leonardo**.
    - Compile and upload to the PCB.
 
+## Hardware
+
+The documentation still need polish, and we used a custom PCB.
+
+
 ## License
 
 This project is using GPL-3.0 license for code to keep the 'Same license' condition of repository PN5180-cardio, CC BY-SA-4.0 license for the documentations, images and multimedia, and CERN-OHL-W license for the Hardware Design. You can use or modify this project as long as you follow the license.
