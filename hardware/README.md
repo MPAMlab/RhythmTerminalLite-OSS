@@ -4,6 +4,8 @@
 
 *Document version: v1.1 | Last updated: 2025-10-15 (capacitor note 2026-03-15)*
 
+![3D view of the PCB](3D_PCB1_2026-09-25.png)
+
 This document describes the electrical design of the Rhythm Terminal Lite main board: an
 **ATmega32U4 (5 V logic)** MCU driving an **NXP PN5180 NFC frontend (3.3 V logic)** over SPI,
 together with a **4×5 anti-ghosting matrix keypad** and **reactive LED indicators**.
@@ -256,6 +258,7 @@ Recommended software implementation (see `firmware/PN5180-cardio.ino`):
 
 | Path / File | Description | Format |
 | :---------- | :---------- | :----- |
+| [`3D_PCB1_2026-09-25.png`](./3D_PCB1_2026-09-25.png) | 3D render of the assembled PCB | PNG |
 | [`Gerber_PCB1_2026-09-25.zip`](./Gerber_PCB1_2026-09-25.zip) | Production Gerber & drill files | RS-274X (JLCPCB / PCBWay ready) |
 | [`SCH_Schematic1_2026-09-25.pdf`](./SCH_Schematic1_2026-09-25.pdf) | Full electrical schematic | PDF |
 | [`rt-251014.eprj2`](./rt-251014.eprj2) | Editable schematic & PCB source project | EasyEDA Pro (嘉立创 EDA 专业版) |

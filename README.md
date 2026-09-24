@@ -98,6 +98,8 @@ Detailed circuit schematics, level-shifting design, connector pinouts, anti-ghos
 - **Schematic & PCB**: Available as [EasyEDA Pro project](hardware/rt-251014.eprj2), [PDF Schematic](hardware/SCH_Schematic1_2026-09-25.pdf), and [Gerber production files](hardware/Gerber_PCB1_2026-09-25.zip).
 - **3D Printable Enclosure**: 3MF package and STL models available in [hardware/3d-model/](hardware/3d-model/).
 
+> **Note**: Detailed assembly instructions (and the required mounting hardware and cabling) are not yet documented here and will be added later.
+
 
 ## License
 
