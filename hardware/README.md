@@ -267,3 +267,14 @@ Recommended software implementation (see `firmware/PN5180-cardio.ino`):
 | [`3d-model/reader-holder.*`](./3d-model/) | PN5180 NFC antenna mounting cradle | STL / SketchUp |
 | [`3d-model/stand-left.*`](./3d-model/) | Left desktop angled stand bracket | STL / SketchUp |
 | [`3d-model/stand-right.*`](./3d-model/) | Right desktop angled stand bracket | STL / SketchUp |
+
+## 10. Enclosure & Front Plate
+
+The front plate is reused directly from the original
+[RhythmTerminal-OSS `front-plate-cutout.dxf`](https://github.com/MPAMlab/RhythmTerminal-OSS/blob/main/model/front-plate-cutout.dxf).
+It uses a **sandwich structure**:
+
+- two laser-cut acrylic panels (front and back), and
+- one **A3+** printed (and trimmed) paper artwork sheet sandwiched between them.
+
+> **Note**: The A3+ printed artwork sheet is **not published** in this repository.
