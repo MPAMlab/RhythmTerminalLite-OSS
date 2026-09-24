@@ -4,6 +4,9 @@
 /* ISO14443 support (for older Aime/Nesica/BANAPASSPORT cards... reader will pretend it was a FeliCa for maximum cardio compatibility) */
 #define WITH_ISO14443 1
 
+/* ISO15693 support (Older Banapassport). Set to 0 if not needed to reduce scan cycle time. */
+#define WITH_ISO15693 1
+
 /* Pinout for the PN5180 free pins */
 #define PN5180_PIN_NSS  23 // PF0
 #define PN5180_PIN_BUSY 22 // PF1

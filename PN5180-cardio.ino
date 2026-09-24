@@ -1,7 +1,9 @@
 #include "Config.h"
 #include "src/PN5180/PN5180.h"
 #include "src/PN5180/PN5180FeliCa.h"
-#include "src/PN5180/PN5180ISO15693.h"
+#if WITH_ISO15693 == 1
+  #include "src/PN5180/PN5180ISO15693.h"
+#endif
 #if WITH_ISO14443 == 1
   #include "src/PN5180/PN5180ISO14443.h"
 #endif
@@ -9,25 +11,24 @@
 #include "Joystick.h"
 
 PN5180FeliCa nfcFeliCa(PN5180_PIN_NSS, PN5180_PIN_BUSY, PN5180_PIN_RST);
-PN5180ISO15693 nfc15693(PN5180_PIN_NSS, PN5180_PIN_BUSY, PN5180_PIN_RST);
+#if WITH_ISO15693 == 1
+  PN5180ISO15693 nfc15693(PN5180_PIN_NSS, PN5180_PIN_BUSY, PN5180_PIN_RST);
+#endif
 #if WITH_ISO14443 == 1
   PN5180ISO14443 nfc14443(PN5180_PIN_NSS, PN5180_PIN_BUSY, PN5180_PIN_RST);
 #endif
 CARDIOHID_ Cardio;
 
 #if WITH_KEYPAD == 1
-  // Matrix dimensions from Config.h defines
   const byte ROWS = 4;
   const byte COLS = 5;
   const byte rowPins[ROWS] = {PIN_ROW1, PIN_ROW2, PIN_ROW3, PIN_ROW4};
   const byte colPins[COLS] = {PIN_COL1, PIN_COL2, PIN_COL3, PIN_COL4, PIN_COL5};
 
-  // State & Debounce Tracking
   bool lastState[ROWS][COLS]; 
-  byte debounceCounter[ROWS][COLS];
-  const byte DEBOUNCE_THRESHOLD = 5; 
+  unsigned long lastDebounceTime[ROWS][COLS];
+  const unsigned long DEBOUNCE_DELAY_MS = 10; 
 
-  // Joystick Configuration
   Joystick_ Joystick(JOYSTICK_DEFAULT_REPORT_ID, 
     JOYSTICK_TYPE_GAMEPAD,
     20, 0,                  
@@ -56,11 +57,11 @@ void setup() {
 #if WITH_LEDS == 1
   for(int i=0; i<5; i++) {
     pinMode(ledPins[i], OUTPUT);
-    digitalWrite(ledPins[i], LOW); // Turn ON (sink to MCU)
+    digitalWrite(ledPins[i], LOW); 
   }
   delay(500);
   for(int i=0; i<5; i++) {
-    digitalWrite(ledPins[i], HIGH); // Turn OFF
+    digitalWrite(ledPins[i], HIGH); 
   }
 #endif
 
@@ -72,14 +73,13 @@ void setup() {
     pinMode(rowPins[i], INPUT);
     for (int j = 0; j < COLS; j++) {
       lastState[i][j] = false;
-      debounceCounter[i][j] = 0;
+      lastDebounceTime[i][j] = 0;
     }
   }
   Joystick.begin();
   Serial.println("Joystick Initialized");
 #endif
 
-/* NFC */
   nfcFeliCa.begin();
   nfcFeliCa.reset();
 
@@ -106,19 +106,78 @@ int cardBusy = 0;
 
 void loop() {
 #if WITH_KEYPAD == 1
-  keypadCheck();
+  keypadCheck(); // Always scan keypad first
 #endif
   
   /* NFC */
-  if (millis()-lastReport < cardBusy) return;
+  if (millis() - lastReport < cardBusy) return;
   
   cardBusy = 0;
   uint8_t uid[8] = {0,0,0,0,0,0,0,0};
   uint8_t hid_data[8] = {0,0,0,0,0,0,0,0};
   
+  // PRIORITY 1: FeliCa (Suica, PASMO, Aime, newer Banapassport, Amusement IC, Mobile NFC)
+#if WITH_KEYPAD == 1
+  keypadCheck();
+#endif
+  nfcFeliCa.reset();
+#if WITH_KEYPAD == 1
+  keypadCheck();
+#endif
+  nfcFeliCa.setupRF();
+#if WITH_KEYPAD == 1
+  keypadCheck();
+#endif
+  uint8_t uidLength = nfcFeliCa.readCardSerial(uid);
+  if (uidLength > 0) {
+    Cardio.sendState(2, uid);      
+    Serial.print("FeliCa Detected. IDm: ");
+    printHex(uid, 8);
+    lastReport = millis();
+    cardBusy = 3000;
+    return;
+  }
+
+#if WITH_ISO15693 == 1
+  // PRIORITY 2: ISO-15693 (Older Banapassport)
+#if WITH_KEYPAD == 1
+  keypadCheck();
+#endif
+  nfc15693.reset();
+#if WITH_KEYPAD == 1
+  keypadCheck();
+#endif
+  nfc15693.setupRF();
+#if WITH_KEYPAD == 1
+  keypadCheck();
+#endif
+  ISO15693ErrorCode rc = nfc15693.getInventory(uid);
+  if (rc == ISO15693_EC_OK ) {
+    for (int i=0; i<8; i++) {
+      hid_data[i] = uid[7-i];
+    }
+    Cardio.sendState(1, hid_data);
+    Serial.print("ISO15693 Detected. UID: ");
+    printHex(hid_data, 8);
+    lastReport = millis();
+    cardBusy = 3000;
+    return;
+  }
+#endif
+
 #if WITH_ISO14443 == 1
+  // PRIORITY 3: ISO14443 (Mifare, generic cards, older Aime/Nesica)
+#if WITH_KEYPAD == 1
+  keypadCheck();
+#endif
   nfc14443.reset();
+#if WITH_KEYPAD == 1
+  keypadCheck();
+#endif
   nfc14443.setupRF();
+#if WITH_KEYPAD == 1
+  keypadCheck();
+#endif
   uint8_t uidLengthMF = nfc14443.readCardSerial(uid);
   if (uidLengthMF > 0) 
   {
@@ -141,69 +200,40 @@ void loop() {
     }
 #endif 
 
-  nfcFeliCa.reset();
-  nfcFeliCa.setupRF();
-  uint8_t uidLength = nfcFeliCa.readCardSerial(uid);
-    if (uidLength > 0) {
-      Cardio.sendState(2, uid);      
-      Serial.print("FeliCa Detected. IDm: ");
-      printHex(uid, 8);
-      lastReport = millis();
-      cardBusy = 3000;
-      return;
-    }
-
-  nfc15693.reset();
-  nfc15693.setupRF();
-  ISO15693ErrorCode rc = nfc15693.getInventory(uid);
-  if (rc == ISO15693_EC_OK ) {
-    for (int i=0; i<8; i++) {
-      hid_data[i] = uid[7-i];
-    }
-    Cardio.sendState(1, hid_data);
-    Serial.print("ISO15693 Detected. UID: ");
-    printHex(hid_data, 8);
-    lastReport = millis();
-    cardBusy = 3000;
-    return;
-  }
   lastReport = millis();
-  cardBusy = 200;
+  cardBusy = 200; // Rest delay between polling cycles (allows ultra-high keypad scan rate)
 }
 
 #if WITH_KEYPAD == 1
-void keypadCheck(){
+void keypadCheck() {
+  unsigned long now = millis();
   for (int r = 0; r < ROWS; r++) {
     pinMode(rowPins[r], OUTPUT);
     digitalWrite(rowPins[r], LOW);
-    delayMicroseconds(50); 
+    delayMicroseconds(30); 
 
     for (int c = 0; c < COLS; c++) {
-      bool rawRead = (digitalRead(colPins[c]) == LOW); 
+      bool rawPressed = (digitalRead(colPins[c]) == LOW); 
       
-      if (rawRead != lastState[r][c]) {
-        debounceCounter[r][c]++;
-        if (debounceCounter[r][c] >= DEBOUNCE_THRESHOLD) {
-          lastState[r][c] = rawRead;
-          debounceCounter[r][c] = 0;
-          
-          int buttonIdx = (r * COLS) + c;
-          if (lastState[r][c]) {
-            Joystick.setButton(buttonIdx, 1);
-            Serial.print("Button "); Serial.print(buttonIdx + 1); Serial.println(" Pressed");
+      // Eager debounce: trigger immediately upon press or release once past lockout period
+      if (rawPressed != lastState[r][c] && (now - lastDebounceTime[r][c] >= DEBOUNCE_DELAY_MS)) {
+        lastState[r][c] = rawPressed;
+        lastDebounceTime[r][c] = now;
+        
+        int buttonIdx = (r * COLS) + c;
+        if (rawPressed) {
+          Joystick.setButton(buttonIdx, 1);
+          Serial.print("Button "); Serial.print(buttonIdx + 1); Serial.println(" Pressed");
 #if WITH_LEDS == 1
-            if (r == 0) digitalWrite(ledPins[c], LOW); 
+          if (r == 0) digitalWrite(ledPins[c], LOW); 
 #endif
-          } else {
-            Joystick.setButton(buttonIdx, 0);
-            Serial.print("Button "); Serial.print(buttonIdx + 1); Serial.println(" Released");
+        } else {
+          Joystick.setButton(buttonIdx, 0);
+          Serial.print("Button "); Serial.print(buttonIdx + 1); Serial.println(" Released");
 #if WITH_LEDS == 1
-            if (r == 0) digitalWrite(ledPins[c], HIGH); 
+          if (r == 0) digitalWrite(ledPins[c], HIGH); 
 #endif
-          }
         }
-      } else {
-        debounceCounter[r][c] = 0;
       }
     }
     pinMode(rowPins[r], INPUT);
