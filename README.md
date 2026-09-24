@@ -1,5 +1,7 @@
 # Rhythm Terminal Lite
 
+![Rhythm Terminal Lite](preview.png)
+
 Repository of Original Rhythm Terminal(alpha test ver.): https://github.com/MPAMlab/RhythmTerminal-OSS
 
 This project provides a specialized firmware for an **ATmega32U4** based PCB integrated with a **PN5180 NFC module**. It is designed to act as a dual-purpose device: a high-performance NFC card reader and a 4x5 matrix joystick (gamepad).
@@ -14,7 +16,7 @@ Another similar project for integrate a PN5132 with rpi pico: https://github.com
 
 Warning: This repository includes AIGC contents.
 
-**This Project is not finished and still under maintaince. Core Hardware design will be upload later.**
+**Hardware design files (Gerber, Schematics, EasyEDA Pro project, and 3D enclosure models) are available in the [`hardware/`](hardware/) directory.**
 
 ## Features
 
@@ -91,7 +93,10 @@ Please notice, you should have a 5v-3.3v level converter on spi bus.
 
 ## Hardware
 
-The documentation still need polish, and we used a custom PCB.
+Detailed circuit schematics, level-shifting design, connector pinouts, anti-ghosting matrix schematics, and 3D printable models are documented in the [Hardware Technical Specification](hardware/README.md).
+
+- **Schematic & PCB**: Available as [EasyEDA Pro project](hardware/rt-251014.eprj2), [PDF Schematic](hardware/SCH_Schematic1_2026-09-25.pdf), and [Gerber production files](hardware/Gerber_PCB1_2026-09-25.zip).
+- **3D Printable Enclosure**: 3MF package and STL models available in [hardware/3d-model/](hardware/3d-model/).
 
 
 ## License
